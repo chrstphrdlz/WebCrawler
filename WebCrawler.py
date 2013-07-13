@@ -1,9 +1,13 @@
 from urllib2 import urlopen,Request
-
-siteVisiting = "http://en.wikipedia.org"
+import sys
+startPage = "http://en.wikipedia.org/wiki/Automobile"
+targetPage = "http://en.wikipedia.org/wiki/Adolf_Hitler"
+siteVisiting = "https://en.wikipedia.org"
 referencingString = "\"/wiki/"
+terminatingString = "\""
 offsetFromExtractedString = 1
 appendingString = ""
+
 
 def getNextUrl(HTMLstring, URLlist):
     #print(HTMLstring)
@@ -20,7 +24,8 @@ def getNextUrl(HTMLstring, URLlist):
     else:            
         stringWithURL = stringWithURL[urlIndex+offsetFromExtractedString:]
             
-        urlEnd = stringWithURL.find("\"")
+        #print(stringWithURL[0:25])
+        urlEnd = stringWithURL.find(terminatingString)
             
         if urlEnd  ==-1:
             
@@ -29,6 +34,8 @@ def getNextUrl(HTMLstring, URLlist):
         else:
             url = stringWithURL[0:urlEnd]
             
+            #print(url)
+
             URLlist.append(siteVisiting+url)
 
             return urlIndex+urlEnd+2
@@ -44,13 +51,19 @@ def makeURLlist(url):
 
         hdr = {'User-Agent': 'Mozilla/5.0'}
         
+        urlString = "" + url 
+
         url = Request(url,headers = hdr)
         
         webInfo = urlopen(url)
 
+        print(urlString)
+
     except:
-        
+
         print("Could not open")
+
+        #print(urlString)
         
         return []
         
@@ -78,19 +91,26 @@ def makeURLlist(url):
 def exploreDepth(List, depth, alreadyVisited):
 
     nextDepth = []
-    
+    #print("sdfvasfd")
     for url in List[depth]:
 
         if url not in alreadyVisited:
+
+            #print("Zdfasdfg")
         
             appendingList = makeURLlist(url)
+
+            if targetPage in appendingList:
+
+                print("Took "+str(depth+1)+" pages to get to Philosophy")
+                sys.exit()
             
             nextDepth = nextDepth + appendingList
         
     return nextDepth
 
     
-url = ['http://en.wikipedia.org/wiki/Uniform_resource_locator'] # write the url here
+url = [startPage] # write the url here
 
 #print(makeURLlist(url))
 
