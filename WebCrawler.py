@@ -1,19 +1,24 @@
-from urllib.request import urlopen,Request
+from urllib2 import urlopen,Request
 
+siteVisiting = "http://en.wikipedia.org"
+referencingString = "\"/wiki/"
+offsetFromExtractedString = 1
+appendingString = ""
 
 def getNextUrl(HTMLstring, URLlist):
+    #print(HTMLstring)
     stringWithURL = HTMLstring[0:]
         
     #print(stringWithURL)
         
-    urlIndex = stringWithURL.find("\"http")
+    urlIndex = stringWithURL.find(referencingString)
         
     if urlIndex == -1:
         
         return -1
     
     else:            
-        stringWithURL = stringWithURL[urlIndex+1:]
+        stringWithURL = stringWithURL[urlIndex+offsetFromExtractedString:]
             
         urlEnd = stringWithURL.find("\"")
             
@@ -23,8 +28,8 @@ def getNextUrl(HTMLstring, URLlist):
         
         else:
             url = stringWithURL[0:urlEnd]
-                
-            URLlist.append(url)
+            
+            URLlist.append(siteVisiting+url)
 
             return urlIndex+urlEnd+2
     
@@ -99,9 +104,9 @@ listOfLists = depthZeroList
 
 alreadyVisited = []
 
-while depth < 3:
+while depth < 2:
 
-    if depth >0:
+    if depth > 0:
         alreadyVisited += listOfLists[depth-1]
     
     nextDepth = exploreDepth(listOfLists, depth, alreadyVisited)
