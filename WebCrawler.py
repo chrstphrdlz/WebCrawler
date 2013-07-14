@@ -1,19 +1,33 @@
-from urllib2 import urlopen,Request
+from urllib2 import urlopen,Request,URLError
 import sys
-startPage = "http://en.wikipedia.org/wiki/Automobile"
-targetPage = "http://en.wikipedia.org/wiki/Adolf_Hitler"
+
+#The starting page
+startPage = "http://en.wikipedia.org/wiki/Formal_fallacy"
+
+#The ending page
+targetPage = "https://en.wikipedia.org/wiki/Philosophy"
+
+#Required because wikipedia does not have entire urls inside HTML 
+#If blank urls not changed
 siteVisiting = "https://en.wikipedia.org"
+
+#This is The string it matches to find url
 referencingString = "\"/wiki/"
+
+#This is the terminating string
 terminatingString = "\""
+
+#This is an optional 
 offsetFromExtractedString = 1
-appendingString = ""
+
+#This is the maximum depth for searchi
+maxDepth = 2
 
 
+#Finds the next URL from the entire HTML string and adds it to the list
 def getNextUrl(HTMLstring, URLlist):
-    #print(HTMLstring)
+
     stringWithURL = HTMLstring[0:]
-        
-    #print(stringWithURL)
         
     urlIndex = stringWithURL.find(referencingString)
         
@@ -23,8 +37,7 @@ def getNextUrl(HTMLstring, URLlist):
     
     else:            
         stringWithURL = stringWithURL[urlIndex+offsetFromExtractedString:]
-            
-        #print(stringWithURL[0:25])
+                
         urlEnd = stringWithURL.find(terminatingString)
             
         if urlEnd  ==-1:
@@ -34,8 +47,8 @@ def getNextUrl(HTMLstring, URLlist):
         else:
             url = stringWithURL[0:urlEnd]
             
-            #print(url)
-
+            checkingURL =    siteVisiting+url
+            
             URLlist.append(siteVisiting+url)
 
             return urlIndex+urlEnd+2
@@ -43,11 +56,10 @@ def getNextUrl(HTMLstring, URLlist):
         
 
 
-
+#Makes a list of URLs gathered from this particular URL
 def makeURLlist(url):
-
+    
     try:
-        #webInfo = urlopen(url)
 
         hdr = {'User-Agent': 'Mozilla/5.0'}
         
@@ -57,15 +69,17 @@ def makeURLlist(url):
         
         webInfo = urlopen(url)
 
-        print(urlString)
+        #print(urlString)
 
-    except:
+    except URLError:
 
         print("Could not open")
 
         #print(urlString)
         
         return []
+    
+
         
     data = str(webInfo.read())
     
@@ -88,6 +102,9 @@ def makeURLlist(url):
 
     return URLlist
 
+
+#Adds all urls connected from each URL at the specified depth to the List
+#Ignores the already visited sites
 def exploreDepth(List, depth, alreadyVisited):
 
     nextDepth = []
@@ -109,10 +126,8 @@ def exploreDepth(List, depth, alreadyVisited):
         
     return nextDepth
 
-    
-url = [startPage] # write the url here
 
-#print(makeURLlist(url))
+url = [startPage]
 
 depthZeroList = []
 
@@ -124,7 +139,7 @@ listOfLists = depthZeroList
 
 alreadyVisited = []
 
-while depth < 2:
+while depth < maxDepth:
 
     if depth > 0:
         alreadyVisited += listOfLists[depth-1]
@@ -135,7 +150,6 @@ while depth < 2:
 
     depth+=1
 
-print(listOfLists)
 
 
 
@@ -147,4 +161,6 @@ print(listOfLists)
 
 
     
+
+
 
