@@ -1,18 +1,21 @@
 from urllib2 import urlopen,Request,URLError
 import sys
+import re
 
 #The starting page
-startPage = "http://en.wikipedia.org/wiki/Formal_fallacy"
+startPage = "http://www.python.org/"
 
 #The ending page
-targetPage = "https://en.wikipedia.org/wiki/Philosophy"
+targetPage = "http://www.python.org/about/apps/"
 
 #Required because wikipedia does not have entire urls inside HTML 
 #If blank urls not changed
-siteVisiting = "https://en.wikipedia.org"
+
+#siteVisiting = "https://en.wikipedia.org"
+siteVisiting = ""
 
 #This is The string it matches to find url
-referencingString = "\"/wiki/"
+referencingString = "\"http"
 
 #This is the terminating string
 terminatingString = "\""
@@ -24,40 +27,11 @@ offsetFromExtractedString = 1
 maxDepth = 2
 
 
-#Finds the next URL from the entire HTML string and adds it to the list
-def getNextUrl(HTMLstring, URLlist):
-
-    stringWithURL = HTMLstring[0:]
-        
-    urlIndex = stringWithURL.find(referencingString)
-        
-    if urlIndex == -1:
-        
-        return -1
-    
-    else:            
-        stringWithURL = stringWithURL[urlIndex+offsetFromExtractedString:]
-                
-        urlEnd = stringWithURL.find(terminatingString)
-            
-        if urlEnd  ==-1:
-            
-            return -1
-        
-        else:
-            url = stringWithURL[0:urlEnd]
-            
-            checkingURL =    siteVisiting+url
-            
-            URLlist.append(siteVisiting+url)
-
-            return urlIndex+urlEnd+2
-    
-        
-
-
 #Makes a list of URLs gathered from this particular URL
-def makeURLlist(url):
+def makeURLlist(url, parentPage):
+
+    if ("http" not in url) and ("https" not in url):
+        url = parentPage + url
     
     try:
 
@@ -69,13 +43,11 @@ def makeURLlist(url):
         
         webInfo = urlopen(url)
 
-        #print(urlString)
+        print("opened " + urlString + "\n")
 
     except URLError:
 
-        print("Could not open")
-
-        #print(urlString)
+        print("Could not open " + urlString + "\n")
         
         return []
     
@@ -88,12 +60,16 @@ def makeURLlist(url):
     URLlist = []
 
     indexOfNext = 0
-    
-    while indexOfNext != -1:
+
+    '''while indexOfNext != -1:
         
         data = data[indexOfNext:] 
         
-        indexOfNext = getNextUrl(data, URLlist)
+        indexOfNext = getNextUrl(data, URLlist)'''
+
+    URLlist = re.findall("(?<=href=\").*?(?=\")", data)
+
+    print("URL LIST size:    " + str(len(URLlist)))
 
     if len(URLlist)>0:
         URLlist.pop()
@@ -114,8 +90,11 @@ def exploreDepth(List, depth, alreadyVisited):
         if url not in alreadyVisited:
 
             #print("Zdfasdfg")
-        
-            appendingList = makeURLlist(url)
+            if depth == 0:
+                appendingList = makeURLlist(url, startPage)
+            #Will have to find 
+            else:
+                appendingList = makeURLlist(url, startPage)
 
             if targetPage in appendingList:
 
@@ -140,6 +119,8 @@ listOfLists = depthZeroList
 alreadyVisited = []
 
 while depth < maxDepth:
+
+    print("\n\n\n\nCurrent Depth = " + str(depth))
 
     if depth > 0:
         alreadyVisited += listOfLists[depth-1]
